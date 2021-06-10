@@ -3,19 +3,17 @@
 #include <math.h>
 #include <omp.h>
 
-
-
 void mergeSort(int arr[], int n);
 void merge(int arr[], int l, int m, int r);
 
-float media(int *GRADES, int A)
+float media(int *GRADES, int A, int i)
 {
-    int i; 
+    int j; 
     float MEDIA = 0;
     
-    for(i = 0; i < A; i++)
+    for(j = i; j < (i + A); j++)
     {
-        MEDIA = MEDIA + GRADES[i];
+        MEDIA = MEDIA + GRADES[j];
     }
     MEDIA = MEDIA/A;
 
@@ -42,42 +40,69 @@ int main(int argc, char** argv){
     srand(seed);
 
     int T = R*C*A;          // Total de elementos
+    int i, count = 0;
 
     int *GRADES = (int*)malloc(T*sizeof(int));        // Vetor com todos os elementos
-    float *RESULTS = (float*)malloc(5*C*sizeof(float));     // Vetor com os dados resultantes [menor, maior, mediana, média, DP]
+    float *RESULTS = (float*)malloc(T*sizeof(float));     // Vetor com os dados resultantes [menor, maior, mediana, média, DP]
     
-    int i;
+    
     for(i = 0; i < T; i++)          // Gera as notas dos alunos
         GRADES[i] = rand()%101;
 
-    double t1 = omp_get_wtime(); 
-    for(i = 0; i < C*A; i = i + A)
+    float aux;
+   double t1 = omp_get_wtime(); 
+    for(i = 0; i < T; i = i + A)
     {
-        mergeSort(&GRADES[i], i + A);
-        RESULTS[i] = GRADES[i]; // Menor nota daquela cidade
-        RESULTS[i+1] = GRADES[i+A-1]; // Maior nota daquela cidade
+        //mergeSort(&GRADES[i], i + A);
+        RESULTS[count] = GRADES[i]; // Menor nota daquela cidade
+        RESULTS[count+1] = GRADES[i+A-1]; // Maior nota daquela cidade
         
         if((A%2)==0)
-            RESULTS[i+2] = (GRADES[i+(A/2)] + GRADES[i+(A/2) +1])/2; // Mediana daquela cidade, caso A seja par
+            RESULTS[count+2] = (GRADES[i+(A/2)-1] + GRADES[i+(A/2)])/2; // Mediana daquela cidade, caso A seja par
         else
-            RESULTS[i+2] = GRADES[i+(A/2)]; // Mediana daquela cidade, caso A seja ímpar
+            RESULTS[count+2] = GRADES[i+(A/2)]; // Mediana daquela cidade, caso A seja ímpar
 
-        RESULTS[i+3] = media(GRADES, A); // Media daquela cidade
-        RESULTS[i+4] = desvPad(RESULTS[i+3], &GRADES[i], i+A); // Desvio padrão daquela cidade
+        RESULTS[count+3] = media(GRADES, A, i); // Media daquela cidade
+        
+        aux = desvPad(RESULTS[count+3], &GRADES[i], i+A); // Desvio padrão daquela cidade
+        RESULTS[count+4] = aux;
+
+        printf("%.2f\n", aux);
+
+        count += 5;
     }
-    double t2 = omp_get_wtime();
+   double t2 = omp_get_wtime();
 
-    printf("Time: %lf\n", t2 - t1);
-    printf("Elements:");
-    for(i=0; i<A; i++)
+   printf("\n");
+   for(i = 0; i < T; i = i + A)
+   {
+       printf("%d %d %d %d %d %d\n", GRADES[i], GRADES[i+1], GRADES[i+2], GRADES[i+3], GRADES[i+4], GRADES[i+5]);
+   }
+   printf("\n");
+
+   for(i = 0; i < 5*C*R; i = i + 5)
+   {
+       printf("%f %f %f %f %f\n", RESULTS[i], RESULTS[i+1], RESULTS[i+2], RESULTS[i+3], RESULTS[i+4]);
+   }
+   printf("\n");
+
+   printf("Time: %lf\n\n", t2 - t1);
+
+   int k;
+    for(int j = 0; j < R; j++)
     {
-        printf(" %d", GRADES[i]);
+        k = 0;
+       for(i = 5*j*C ; i < (5*C)*(j+1); i = i + 5)
+        {
+            printf("Reg %d - Cid %d: menor: %.0f, maior: %.0f, mediana: %.2f, média: %.2f e DP: %.2f\n", j, k, RESULTS[i], RESULTS[i+1], RESULTS[i+2], RESULTS[i+3], RESULTS[i+4]);
+            k++;
+        }
+        printf("\n"); 
+        printf("\n");
     }
-    printf("\n");
-    printf("Cid 0: menor: %.0f, maior: %.0f, mediana: %.2f, média: %.2f e DP: %.2f", RESULTS[i], RESULTS[i+1], RESULTS[i+2], RESULTS[i+3], RESULTS[i+4]);
+
     return 0;
 }
-
 
 void mergeSort(int arr[], int n)
 {
