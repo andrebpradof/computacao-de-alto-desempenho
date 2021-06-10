@@ -43,8 +43,9 @@ int main(int argc, char** argv){
     int i, count = 0;
 
     int *GRADES = (int*)malloc(T*sizeof(int));        // Vetor com todos os elementos
-    float *RESULTS = (float*)malloc(T*sizeof(float));     // Vetor com os dados resultantes [menor, maior, mediana, média, DP]
-    
+    float *CITIES = (float*)malloc(T*sizeof(float));     // Vetor com os dados resultantes das cidades[menor, maior, mediana, média, DP]
+    float *REGIONS = (float*)malloc(5*R*sizeof(float));     // Vetor com os dados resultantes das regiões[menor, maior, mediana, média, DP]
+    float *BRAZIL = (float*)malloc(5*sizeof(float));     // Vetor com os dados resultantes do Brasil [menor, maior, mediana, média, DP]
     
     for(i = 0; i < T; i++)          // Gera as notas dos alunos
         GRADES[i] = rand()%101;
@@ -54,39 +55,20 @@ int main(int argc, char** argv){
     for(i = 0; i < T; i = i + A)
     {
         //mergeSort(&GRADES[i], i + A);
-        RESULTS[count] = GRADES[i]; // Menor nota daquela cidade
-        RESULTS[count+1] = GRADES[i+A-1]; // Maior nota daquela cidade
+        CITIES[count] = GRADES[i]; // Menor nota daquela cidade
+        CITIES[count+1] = GRADES[i+A-1]; // Maior nota daquela cidade
         
         if((A%2)==0)
-            RESULTS[count+2] = (GRADES[i+(A/2)-1] + GRADES[i+(A/2)])/2; // Mediana daquela cidade, caso A seja par
+            CITIES[count+2] = (GRADES[i+(A/2)-1] + GRADES[i+(A/2)])/2; // Mediana daquela cidade, caso A seja par
         else
-            RESULTS[count+2] = GRADES[i+(A/2)]; // Mediana daquela cidade, caso A seja ímpar
+            CITIES[count+2] = GRADES[i+(A/2)]; // Mediana daquela cidade, caso A seja ímpar
 
-        RESULTS[count+3] = media(GRADES, A, i); // Media daquela cidade
-        
-        aux = desvPad(RESULTS[count+3], &GRADES[i], i+A); // Desvio padrão daquela cidade
-        RESULTS[count+4] = aux;
-
-        printf("%.2f\n", aux);
+        CITIES[count+3] = media(GRADES, A, i); // Media daquela cidade
+        CITIES[count+4] = desvPad(CITIES[count+3], &GRADES[i], i+A); // Desvio padrão daquela cidade;
 
         count += 5;
     }
    double t2 = omp_get_wtime();
-
-   printf("\n");
-   for(i = 0; i < T; i = i + A)
-   {
-       printf("%d %d %d %d %d %d\n", GRADES[i], GRADES[i+1], GRADES[i+2], GRADES[i+3], GRADES[i+4], GRADES[i+5]);
-   }
-   printf("\n");
-
-   for(i = 0; i < 5*C*R; i = i + 5)
-   {
-       printf("%f %f %f %f %f\n", RESULTS[i], RESULTS[i+1], RESULTS[i+2], RESULTS[i+3], RESULTS[i+4]);
-   }
-   printf("\n");
-
-   printf("Time: %lf\n\n", t2 - t1);
 
    int k;
     for(int j = 0; j < R; j++)
@@ -94,7 +76,7 @@ int main(int argc, char** argv){
         k = 0;
        for(i = 5*j*C ; i < (5*C)*(j+1); i = i + 5)
         {
-            printf("Reg %d - Cid %d: menor: %.0f, maior: %.0f, mediana: %.2f, média: %.2f e DP: %.2f\n", j, k, RESULTS[i], RESULTS[i+1], RESULTS[i+2], RESULTS[i+3], RESULTS[i+4]);
+            printf("Reg %d - Cid %d: menor: %.0f, maior: %.0f, mediana: %.2f, média: %.2f e DP: %.2f\n", j, k, CITIES[i], CITIES[i+1], CITIES[i+2], CITIES[i+3], CITIES[i+4]);
             k++;
         }
         printf("\n"); 
