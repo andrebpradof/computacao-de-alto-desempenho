@@ -20,7 +20,7 @@ Funções utilizadas ao longo da execução do programa
 */
 void mergeSort(int arr[], int n);
 void merge(int arr[], int l, int m, int r);
-void countingSort(int array[], int size);
+float countingSort(int array[], int size);
 float desvPad(float mean, int arr[], int n);
 float media(int *GRADES, int tam);
 
@@ -65,7 +65,8 @@ int main(int argc, char** argv){
    double t1 = omp_get_wtime(); 
    
     for(int i = 0, j = 0; i < T; i = i + A, j+=5){
-        countingSort(&GRADES[i], A);
+        CITIES[j + MEDIA] = countingSort(&GRADES[i], A); // MEDIA E ORDENA
+
         CITIES[j + MENOR] = GRADES[i]; // Menor nota daquela cidade
         CITIES[j + MAIOR] = GRADES[i+A-1]; // Maior nota daquela cidade
         
@@ -73,8 +74,6 @@ int main(int argc, char** argv){
             CITIES[j + MEDIANA] = (GRADES[i+(A/2)-1] + GRADES[i+(A/2)])/2.0; // Mediana daquela cidade, caso A seja par
         else
             CITIES[j + MEDIANA] = GRADES[i+(A/2)]; // Mediana daquela cidade, caso A seja ímpar
-
-        CITIES[j + MEDIA] = media(&GRADES[i], A); // Media daquela cidade
         if(CITIES[j + MEDIA] >= biggerCityMedia){
           biggerCityMedia = CITIES[j + MEDIA];
           betterCityIndex = (i+1)/A;
@@ -84,7 +83,7 @@ int main(int argc, char** argv){
     
     
     for(int i = 0, j = 0; i < T; i = i + (regionSize), j+=5){
-        countingSort(&GRADES[i], regionSize);
+        REGIONS[j + MEDIA] = countingSort(&GRADES[i], regionSize); // MEDIA E ORDENA
         REGIONS[j + MENOR] = GRADES[i]; // Menor nota daquela cidade
         REGIONS[j + MAIOR] = GRADES[i+(regionSize)-1]; // Maior nota daquela cidade
         
@@ -93,7 +92,6 @@ int main(int argc, char** argv){
         else
             REGIONS[j + MEDIANA] = GRADES[i+((regionSize)/2)]; // Mediana daquela cidade, caso A seja ímpar
 
-        REGIONS[j + MEDIA] = media(&GRADES[i], regionSize); // Media daquela cidade
         if(REGIONS[j + MEDIA] >= biggerRegionMedia){
           biggerRegionMedia = REGIONS[j + MEDIA];
           betterRegionIndex = (i+1)/(C*A);
@@ -101,12 +99,10 @@ int main(int argc, char** argv){
         REGIONS[j + DESVPAD] = desvPad(REGIONS[j+MEDIA], &GRADES[i], (regionSize)); // Desvio padrão daquela cidade;
     }
 
-    countingSort(GRADES, T);
-    
+    BRAZIL[MEDIA] = countingSort(GRADES, T);
     BRAZIL[MENOR] = GRADES[0];
     BRAZIL[MAIOR] = GRADES[T-1];
     BRAZIL[MEDIANA] = T % 2 == 0? (GRADES[T/2 -1] + GRADES[T/2])/2 : GRADES[T/2];
-    BRAZIL[MEDIA] = media(GRADES, T);
     BRAZIL[DESVPAD] = desvPad(BRAZIL[MEDIA], GRADES, T);
     
     
@@ -116,7 +112,7 @@ int main(int argc, char** argv){
 
     // PRINT SECTION //
     
-    /*for(int i = 0; i < R; i++){
+    for(int i = 0; i < R; i++){
        for(int j = 5*i*C ; j < (5*C)*(i+1); j = j + 5)
             printf("Reg %d - Cid %d: menor: %.0f, maior: %.0f, mediana: %.2f, média: %.2f e DP: %.2f\n", i, (j / 5) % C, CITIES[j+MENOR], CITIES[j+MAIOR], CITIES[j+MEDIANA], CITIES[j+MEDIA], CITIES[j+DESVPAD]);
         
@@ -141,8 +137,7 @@ int main(int argc, char** argv){
     printf("Melhor cidade: Região %d, Cidade %d\n", betterCityIndex / R, betterCityIndex % C);
     printf("\n"); 
     printf("\n");
-    
-*/
+
     printf("Tempo de resposta sem considerar E/S, em segundos: %.3fs\n", (t2-t1));
     
 
@@ -150,9 +145,10 @@ int main(int argc, char** argv){
 }
 
 /*
-Função que ordena os vetores do programa, com O(n)
+Função que ordena os vetores do programa, com O(n). Retorna a média dos dados.
  */
-void countingSort(int array[], int size) {
+float countingSort(int array[], int size) {
+    float soma = 0;
     int* output = (int*)malloc(size*sizeof(int));
     int count[MAX_NOTAS + 1];
 
@@ -162,6 +158,7 @@ void countingSort(int array[], int size) {
 
     for (int i = 0; i < size; i++) {
         count[array[i]]++;
+        soma += array[i];
     }
 
     for (int i = 1; i <= MAX_NOTAS; i++) {
@@ -177,6 +174,7 @@ void countingSort(int array[], int size) {
         array[i] = output[i];
     }
     free(output);
+    return soma/size; // Retorna a média
 }
 
 /*
