@@ -1,3 +1,12 @@
+/********************************************************************************
+* *               Trabalho I - SSC0903 - Computação de alto desempenho          *     
+*   André Baconcelo Prado Furlanetti (10748305)                                 *
+*   George Alexandre Gantus (10691988)                                          *
+*   Leonardo Prado Dias (10684642)                                              *
+*   Pedro Paulo Herzog Junior (10284692)                                        *
+*   Victor Felipe Domingues do Amaral (10696506)                                *
+*********************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +26,6 @@ void radixsort(Caractere vetor[], int inicio, int tamanho);
 void arruma_empate(Caractere vetor[], int inicio, int tamanho);
 
 int main(){
-/*     memset(text, '\0', SIZE*sizeof(char)); */
     char **textLines = (char**) malloc(BLOCKSIZE*sizeof(char *));
     int currentSize = 100;
     int numLines = 0;
@@ -33,13 +41,12 @@ int main(){
             currentSize += BLOCKSIZE;
             textLines = (char**)realloc(textLines,currentSize*sizeof(char *));
         }
-        
     }
 
     double t1 = omp_get_wtime();
     //aqui todos os dados foram lidos no vetor textSize e i é o numero de linhas
     Caractere **charLists = (Caractere**)malloc(numLines*sizeof(Caractere*));
-    //#pragma omp parallel for
+    #pragma omp parallel for firstprivate(numLines)
     for(int j = 0; j < numLines; j++){
 
         Caractere *caractere = (Caractere*)malloc(NUM_MAX_CHAR*sizeof(Caractere));
@@ -49,7 +56,7 @@ int main(){
             caractere[i].freq = 0;
         }
         char* line = textLines[j];
-        //#pragma omp simd
+    
         for(int i = 0; line[i] != '\n'; i++)
             caractere[(int)line[i]].freq++;
         
@@ -62,12 +69,14 @@ int main(){
 
     printf("Time lapsed: %lf\n", t2 - t1);
 
+    
     for(int j = 0; j < numLines; j++){
         for(int i = NUM_MIN_CHAR; i < NUM_MAX_CHAR; i++)
             if(charLists[j][i].freq != 0)
                 printf("%c %d\n", charLists[j][i].caractere, charLists[j][i].freq);
         printf("\n");
     }
+    
     return 0;
 }
 

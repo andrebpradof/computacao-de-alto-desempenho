@@ -1,10 +1,19 @@
+/********************************************************************************
+* *               Trabalho I - SSC0903 - Computação de Alto Desempenho          *     
+*   André Baconcelo Prado Furlanetti (10748305)                                 *
+*   George Alexandre Gantus (10691988)                                          *
+*   Leonardo Prado Dias (10684642)                                              *
+*   Pedro Paulo Herzog Junior (10284692)                                        *
+*   Victor Felipe Domingues do Amaral (10696506)                                *
+*********************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <omp.h>
-#define SIZE 1001
-#define NUM_MAX_CHAR 128
-#define NUM_MIN_CHAR 32
+#define SIZE 1001   // Tamanho máximo da linha
+#define NUM_MAX_CHAR 128   // Intervalo ASCII 
+#define NUM_MIN_CHAR 32   //  Intervalo ASCII
 struct caractere {
     char caractere;
     int freq;
@@ -20,7 +29,7 @@ int main(int argc, char const *argv[])
     char text[SIZE];
     memset(text, '\0', SIZE*sizeof(char));
     
-
+    double t1 = omp_get_wtime();
     while(fgets(text, SIZE, stdin) != NULL){
         Caractere caractere[NUM_MAX_CHAR];
 
@@ -33,15 +42,22 @@ int main(int argc, char const *argv[])
             caractere[text[i]].freq++;
         
         radixsort(caractere, NUM_MIN_CHAR, NUM_MAX_CHAR);
-        //arruma_empate(caractere, NUM_MIN_CHAR, NUM_MAX_CHAR);
+        arruma_empate(caractere, NUM_MIN_CHAR, NUM_MAX_CHAR);
 
+        
         for(int i = NUM_MIN_CHAR; i < NUM_MAX_CHAR; i++)
             if(caractere[i].freq != 0)
                 printf("%c %d\n", caractere[i].caractere, caractere[i].freq);
         printf("\n");
+        
+        
 
         memset(text, '\0', SIZE*sizeof(char));
     }
+    
+    double t2 = omp_get_wtime(); 
+    printf("Sequential Time lapsed: %lf\n", t2 - t1);
+    
     return 0;
 }
 
@@ -84,17 +100,17 @@ void arruma_empate(Caractere vetor[], int inicio, int tamanho){
             int indiceAux = i;
             while(vetor[indiceAux].freq == vetor[indiceAux+1].freq){
                 int indiceAux2 = indiceAux; 
-                int indiceMenor = indiceAux2;
+                int indiceMaior = indiceAux2;
                 while (vetor[indiceAux2].freq == vetor[indiceAux2+1].freq)
                 {
-                    if(vetor[indiceAux2+1].caractere < vetor[indiceAux2].caractere){
-                        indiceMenor = indiceAux2 + 1;
+                    if(vetor[indiceAux2+1].caractere > vetor[indiceAux2].caractere){
+                        indiceMaior = indiceAux2 + 1;
                     }
                     indiceAux2++;
                 }
                 Caractere aux = vetor[indiceAux];
-                vetor[indiceAux] = vetor[indiceMenor];
-                vetor[indiceMenor] = aux;
+                vetor[indiceAux] = vetor[indiceMaior];
+                vetor[indiceMaior] = aux;
                 indiceAux++;
             }
             i = indiceAux + 1;
@@ -102,14 +118,6 @@ void arruma_empate(Caractere vetor[], int inicio, int tamanho){
             
         }
         i++;
+    }
 }
-/* 
-    for(int i = inicio; i < tamanho-1; i++){
-        if(vetor[i].freq == vetor[i+1].freq){
-            int j = i+1;
-            while(j < tamanho && vetor[j].freq == vetor[j+1].freq)
-                j++;
-            
-        }
-    } */
-}
+
