@@ -5,6 +5,7 @@
 #define SIZE 1001
 #define NUM_MAX_CHAR 128
 #define NUM_MIN_CHAR 32
+#define BLOCKSIZE 100
 struct caractere {
     char caractere;
     int freq;
@@ -15,36 +16,60 @@ typedef struct caractere Caractere;
 void radixsort(Caractere vetor[], int inicio, int tamanho);
 void arruma_empate(Caractere vetor[], int inicio, int tamanho);
 
-int main(int argc, char const *argv[])
-{
-    char text[SIZE];
-    memset(text, '\0', SIZE*sizeof(char));
+int main(){
+/*     memset(text, '\0', SIZE*sizeof(char)); */
+    char **textLines = (char**) malloc(BLOCKSIZE*sizeof(char *));
+    int currentSize = 100;
+    int numLines = 0;
     
+    while(1){
+        char *text = calloc(SIZE, sizeof(char));
+        char* result = fgets(text, SIZE, stdin);
+        if(result == NULL)
+            break;
+        textLines[numLines] = text;
+        numLines += 1;
+        if(numLines == currentSize){
+            currentSize += BLOCKSIZE;
+            textLines = (char**)realloc(textLines,currentSize*sizeof(char *));
+        }
+        
+    }
 
-    while(fgets(text, SIZE, stdin) != NULL){
-        Caractere caractere[NUM_MAX_CHAR];
+    double t1 = omp_get_wtime();
+    //aqui todos os dados foram lidos no vetor textSize e i é o numero de linhas
+    Caractere **charLists = (Caractere**)malloc(numLines*sizeof(Caractere*));
+    //#pragma omp parallel for
+    for(int j = 0; j < numLines; j++){
+
+        Caractere *caractere = (Caractere*)malloc(NUM_MAX_CHAR*sizeof(Caractere));
 
         for(int i = 0; i < NUM_MAX_CHAR; i++){
             caractere[i].caractere = i;
             caractere[i].freq = 0;
         }
-
-        for(int i = 0; i < SIZE; i++)
-            caractere[text[i]].freq++;
+        char* line = textLines[j];
+        //#pragma omp simd
+        for(int i = 0; line[i] != '\n'; i++)
+            caractere[(int)line[i]].freq++;
         
         radixsort(caractere, NUM_MIN_CHAR, NUM_MAX_CHAR);
-        //arruma_empate(caractere, NUM_MIN_CHAR, NUM_MAX_CHAR);
+        arruma_empate(caractere, NUM_MIN_CHAR, NUM_MAX_CHAR);
+        charLists[j] = caractere;
+    }
 
+    double t2 = omp_get_wtime();
+
+    printf("Time lapsed: %lf\n", t2 - t1);
+
+    for(int j = 0; j < numLines; j++){
         for(int i = NUM_MIN_CHAR; i < NUM_MAX_CHAR; i++)
-            if(caractere[i].freq != 0)
-                printf("%c %d\n", caractere[i].caractere, caractere[i].freq);
+            if(charLists[j][i].freq != 0)
+                printf("%c %d\n", charLists[j][i].caractere, charLists[j][i].freq);
         printf("\n");
-
-        memset(text, '\0', SIZE*sizeof(char));
     }
     return 0;
 }
-
 
 void radixsort(Caractere vetor[], int inicio, int tamanho) {
     int i;
@@ -84,17 +109,17 @@ void arruma_empate(Caractere vetor[], int inicio, int tamanho){
             int indiceAux = i;
             while(vetor[indiceAux].freq == vetor[indiceAux+1].freq){
                 int indiceAux2 = indiceAux; 
-                int indiceMenor = indiceAux2;
+                int indiceMaior = indiceAux2;
                 while (vetor[indiceAux2].freq == vetor[indiceAux2+1].freq)
                 {
-                    if(vetor[indiceAux2+1].caractere < vetor[indiceAux2].caractere){
-                        indiceMenor = indiceAux2 + 1;
+                    if(vetor[indiceAux2+1].caractere > vetor[indiceAux2].caractere){
+                        indiceMaior = indiceAux2 + 1;
                     }
                     indiceAux2++;
                 }
                 Caractere aux = vetor[indiceAux];
-                vetor[indiceAux] = vetor[indiceMenor];
-                vetor[indiceMenor] = aux;
+                vetor[indiceAux] = vetor[indiceMaior];
+                vetor[indiceMaior] = aux;
                 indiceAux++;
             }
             i = indiceAux + 1;
@@ -102,14 +127,5 @@ void arruma_empate(Caractere vetor[], int inicio, int tamanho){
             
         }
         i++;
-}
-/* 
-    for(int i = inicio; i < tamanho-1; i++){
-        if(vetor[i].freq == vetor[i+1].freq){
-            int j = i+1;
-            while(j < tamanho && vetor[j].freq == vetor[j+1].freq)
-                j++;
-            
-        }
-    } */
+    }
 }
