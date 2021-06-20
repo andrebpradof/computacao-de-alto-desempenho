@@ -11,9 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <omp.h>
-#define SIZE 1001
-#define NUM_MAX_CHAR 128
-#define NUM_MIN_CHAR 32
+#define SIZE 1001   // Tamanho máximo da linha
+#define NUM_MAX_CHAR 128   // Intervalo ASCII 
+#define NUM_MIN_CHAR 32   //  Intervalo ASCII
 #define BLOCKSIZE 100
 struct caractere {
     char caractere;
